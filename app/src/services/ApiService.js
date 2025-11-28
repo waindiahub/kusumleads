@@ -208,6 +208,65 @@ class ApiService {
   async publicUrl(key) {
     return this.get('/r2/public-url', { key });
   }
+
+  // WhatsApp Advanced API Methods
+  async sendInteractiveMessage(to, type, payload) {
+    return this.post('/whatsapp/send', { to, type: 'interactive', interactive: payload });
+  }
+
+  async sendListMessage(to, header, body, footer, options) {
+    return this.post('/whatsapp/send', {
+      to,
+      type: 'interactive',
+      interactive: {
+        type: 'list',
+        header: { type: 'text', text: header },
+        body: { text: body },
+        footer: { text: footer },
+        action: { button: 'Select', sections: [{ rows: options }] }
+      }
+    });
+  }
+
+  async sendButtonMessage(to, bodyText, buttons) {
+    return this.post('/whatsapp/send', {
+      to,
+      type: 'interactive',
+      interactive: {
+        type: 'button',
+        body: { text: bodyText },
+        action: { buttons: buttons.map((b, i) => ({ type: 'reply', reply: { id: String(i), title: b } })) }
+      }
+    });
+  }
+
+  async sendProductMessage(to, catalogId, productId, bodyText = '') {
+    return this.post('/whatsapp/send', {
+      to,
+      type: 'interactive',
+      interactive: {
+        type: 'product',
+        product: { catalog_id: catalogId, product_retailer_id: productId },
+        ...(bodyText && { body: { text: bodyText } })
+      }
+    });
+  }
+
+  async sendLocationMessage(to, latitude, longitude, name, address) {
+    return this.post('/whatsapp/send', {
+      to,
+      type: 'location',
+      location: { latitude, longitude, name, address }
+    });
+  }
+
+  async getConversationMetrics(fromDate = null, toDate = null) {
+    return this.get('/whatsapp/metrics', { from: fromDate, to: toDate });
+  }
+
+  async markMessageAsRead(conversationId, messageId) {
+    return this.post(`/whatsapp/conversations/${conversationId}/messages/${messageId}/read`, {});
+  }
 }
 
 export const apiService = new ApiService();
