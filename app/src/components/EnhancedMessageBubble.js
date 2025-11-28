@@ -6,21 +6,23 @@ import {
   IconButton,
   Menu,
   MenuItem,
-  Chip,
-  Dialog,
-  CircularProgress
+  Dialog
 } from '@mui/material'
 import {
   MoreVert,
   Download,
   Reply,
-  Copy,
+  ContentCopy,
   Delete,
   PlayArrow,
   Pause
 } from '@mui/icons-material'
-import { ButtonMessageBubble, ListMessageBubble, ProductMessageBubble, MediaCarouselBubble } from './InteractiveMessageBubble'
-import LinkPreview from './LinkPreview'
+import {
+  ButtonMessageBubble,
+  ListMessageBubble,
+  ProductMessageBubble,
+  MediaCarouselBubble
+} from './InteractiveMessageBubble'
 
 const formatTime = (timestamp) => {
   if (!timestamp) return ''
@@ -78,6 +80,24 @@ export default function EnhancedMessageBubble({ message, onReply, onDelete, isOu
   const messageType = (message.type || '').toLowerCase()
   const mediaUrl = message.media_url
   const hasMedia = mediaUrl && messageType !== 'text'
+  const isInteractive = messageType === 'interactive' && message.interactive
+  
+  // Handle interactive message types
+  if (isInteractive) {
+    const interactiveType = message.interactive?.type
+    if (interactiveType === 'button') {
+      return <ButtonMessageBubble message={message} onReply={onReply} isOutgoing={isOutgoing} />
+    }
+    if (interactiveType === 'list') {
+      return <ListMessageBubble message={message} onReply={onReply} isOutgoing={isOutgoing} />
+    }
+    if (interactiveType === 'product') {
+      return <ProductMessageBubble message={message} isOutgoing={isOutgoing} />
+    }
+    if (interactiveType === 'carousel') {
+      return <MediaCarouselBubble message={message} isOutgoing={isOutgoing} />
+    }
+  }
 
   return (
     <>
@@ -263,7 +283,7 @@ export default function EnhancedMessageBubble({ message, onReply, onDelete, isOu
             </MenuItem>
             {message.body && (
               <MenuItem onClick={handleCopy}>
-                <Copy fontSize="small" sx={{ mr: 1 }} /> Copy
+                <ContentCopy fontSize="small" sx={{ mr: 1 }} /> Copy
               </MenuItem>
             )}
             {mediaUrl && (

@@ -23,17 +23,24 @@ function metaVerifyToken() {
     return getSetting('meta_verify_token');
 }
 
-function whatsappSendText($to, $text, $phoneNumberIdOverride = null) {
+function whatsappSendText($to, $text, $phoneNumberIdOverride = null, $contextMessageId = null) {
     $token = whatsappToken();
     $pnId = $phoneNumberIdOverride ?: whatsappPhoneNumberId();
     if (!$token || !$pnId) return ['success' => false, 'message' => 'WhatsApp not configured'];
     $url = 'https://graph.facebook.com/' . whatsappGraphVersion() . '/' . $pnId . '/messages';
     $payload = [
         'messaging_product' => 'whatsapp',
+        'recipient_type' => 'individual',
         'to' => $to,
         'type' => 'text',
         'text' => ['body' => $text]
     ];
+    
+    // Add context for contextual reply
+    if ($contextMessageId) {
+        $payload['context'] = ['message_id' => $contextMessageId];
+    }
+    
     return whatsappPost($url, $payload);
 }
 
@@ -299,7 +306,30 @@ function handleMetaWebhook() {
     }
     foreach ($json['entry'] as $entry) {
         foreach (($entry['changes'] ?? []) as $change) {
+            $field = $change['field'] ?? null;
             $value = $change['value'] ?? [];
+            
+            // Handle calls webhook
+            if ($field === 'calls') {
+                require_once 'whatsapp_calling.php';
+                whatsappHandleCallWebhook($db, ['value' => $value]);
+                continue;
+            }
+            
+            // Handle account settings update webhook
+            if ($field === 'account_settings_update') {
+                // Handle settings updates if needed
+                continue;
+            }
+            
+            // Handle phone number quality update (throughput upgrade)
+            if ($field === 'phone_number_quality_update') {
+                require_once 'whatsapp_throughput.php';
+                whatsappHandleThroughputUpgrade($db, ['value' => $value]);
+                continue;
+            }
+            
+            // Handle messages webhook (existing code)
             $contactName = null;
             $metaContactId = null;
             $phoneNumberId = $value['metadata']['phone_number_id'] ?? null;
@@ -310,6 +340,16 @@ function handleMetaWebhook() {
             }
             $messages = $value['messages'] ?? [];
             $statuses = $value['statuses'] ?? [];
+            
+            // Handle call permission webhooks
+            foreach ($messages as $m) {
+                if (isset($m['interactive']['type']) && $m['interactive']['type'] === 'call_permission_reply') {
+                    require_once 'whatsapp_call_permissions.php';
+                    whatsappHandleCallPermissionWebhook($db, ['value' => $value, 'messages' => [$m], 'metadata' => $value['metadata'] ?? []]);
+                    continue;
+                }
+            }
+            
             foreach ($messages as $m) {
                 $from = $m['from'] ?? null;
                 $id = $m['id'] ?? null;
@@ -320,8 +360,24 @@ function handleMetaWebhook() {
                 if ($type === 'text') {
                     $bodyText = $m['text']['body'] ?? null;
                 } elseif ($type === 'interactive') {
-                    $interaction = $m['interactive']['list_reply']['title'] ?? $m['interactive']['button_reply']['title'] ?? null;
-                    $bodyText = $interaction ?: 'Interactive reply';
+                    // Handle button replies
+                    if (isset($m['interactive']['button_reply'])) {
+                        $buttonReply = $m['interactive']['button_reply'];
+                        $bodyText = 'Button: ' . ($buttonReply['title'] ?? $buttonReply['id'] ?? 'Unknown');
+                        // Store button reply data in meta_json
+                        $m['button_reply_id'] = $buttonReply['id'] ?? null;
+                        $m['button_reply_title'] = $buttonReply['title'] ?? null;
+                    }
+                    // Handle list replies
+                    elseif (isset($m['interactive']['list_reply'])) {
+                        $listReply = $m['interactive']['list_reply'];
+                        $bodyText = 'List: ' . ($listReply['title'] ?? $listReply['id'] ?? 'Unknown');
+                        $m['list_reply_id'] = $listReply['id'] ?? null;
+                        $m['list_reply_title'] = $listReply['title'] ?? null;
+                        $m['list_reply_description'] = $listReply['description'] ?? null;
+                    } else {
+                        $bodyText = 'Interactive reply';
+                    }
                 } elseif ($type === 'location') {
                     $loc = $m['location'] ?? [];
                     $bodyText = trim(($loc['name'] ?? '') . ' ' . ($loc['address'] ?? ''));

@@ -267,6 +267,165 @@ class ApiService {
   async markMessageAsRead(conversationId, messageId) {
     return this.post(`/whatsapp/conversations/${conversationId}/messages/${messageId}/read`, {});
   }
+
+  // WhatsApp Calling API Methods
+  async initiateCall(to, sdpOffer, phoneNumberId = null, bizOpaqueCallbackData = null) {
+    return this.post('/whatsapp/calls/initiate', {
+      to,
+      sdp_offer: sdpOffer,
+      phone_number_id: phoneNumberId,
+      biz_opaque_callback_data: bizOpaqueCallbackData
+    });
+  }
+
+  async preAcceptCall(callId, sdpAnswer, phoneNumberId = null) {
+    return this.post('/whatsapp/calls/pre_accept', {
+      call_id: callId,
+      sdp_answer: sdpAnswer,
+      phone_number_id: phoneNumberId
+    });
+  }
+
+  async acceptCall(callId, sdpAnswer, phoneNumberId = null, bizOpaqueCallbackData = null) {
+    return this.post('/whatsapp/calls/accept', {
+      call_id: callId,
+      sdp_answer: sdpAnswer,
+      phone_number_id: phoneNumberId,
+      biz_opaque_callback_data: bizOpaqueCallbackData
+    });
+  }
+
+  async rejectCall(callId, phoneNumberId = null) {
+    return this.post('/whatsapp/calls/reject', {
+      call_id: callId,
+      phone_number_id: phoneNumberId
+    });
+  }
+
+  async terminateCall(callId, phoneNumberId = null) {
+    return this.post('/whatsapp/calls/terminate', {
+      call_id: callId,
+      phone_number_id: phoneNumberId
+    });
+  }
+
+  async getCall(callId) {
+    return this.get(`/whatsapp/calls/${callId}`);
+  }
+
+  async getCalls() {
+    return this.get('/whatsapp/calls');
+  }
+
+  async getCallPermissions(userWaId, phoneNumberId = null) {
+    return this.get('/whatsapp/call_permissions', {
+      user_wa_id: userWaId,
+      phone_number_id: phoneNumberId
+    });
+  }
+
+  async sendCallPermissionRequest(to, messageBody, phoneNumberId = null) {
+    return this.post('/whatsapp/call_permissions/request', {
+      to,
+      message_body: messageBody,
+      phone_number_id: phoneNumberId
+    });
+  }
+
+  async sendMediaCarouselMessage(to, bodyText, cards, phoneNumberId = null) {
+    return this.post('/whatsapp/send', {
+      to,
+      type: 'interactive',
+      interactive: {
+        type: 'carousel',
+        body: { text: bodyText },
+        action: { cards }
+      },
+      phone_number_id: phoneNumberId
+    });
+  }
+
+  async sendTypingIndicator(to, messageId, phoneNumberId = null) {
+    return this.post('/whatsapp/typing_indicator', {
+      to,
+      message_id: messageId,
+      phone_number_id: phoneNumberId
+    });
+  }
+
+  async sendContextualReply(to, messageBody, contextMessageId, phoneNumberId = null) {
+    return this.post('/whatsapp/contextual_reply', {
+      to,
+      message_body: messageBody,
+      context_message_id: contextMessageId,
+      phone_number_id: phoneNumberId
+    });
+  }
+
+  async sendAddressMessage(to, address, phoneNumberId = null) {
+    return this.post('/whatsapp/message/address', {
+      to,
+      address,
+      phone_number_id: phoneNumberId
+    });
+  }
+
+  async sendAudioMessage(to, audioUrl, phoneNumberId = null) {
+    return this.post('/whatsapp/message/audio', {
+      to,
+      audio_url: audioUrl,
+      phone_number_id: phoneNumberId
+    });
+  }
+
+  async sendContactsMessage(to, contacts, phoneNumberId = null) {
+    return this.post('/whatsapp/message/contacts', {
+      to,
+      contacts,
+      phone_number_id: phoneNumberId
+    });
+  }
+
+  async sendStickerMessage(to, stickerUrl, phoneNumberId = null) {
+    return this.post('/whatsapp/message/sticker', {
+      to,
+      sticker_url: stickerUrl,
+      phone_number_id: phoneNumberId
+    });
+  }
+
+  async sendReactionMessage(to, messageId, emoji, phoneNumberId = null) {
+    return this.post('/whatsapp/message/reaction', {
+      to,
+      message_id: messageId,
+      emoji,
+      phone_number_id: phoneNumberId
+    });
+  }
+
+  async getLinkPreview(url) {
+    return this.get('/whatsapp/link/preview', { url });
+  }
+
+  async uploadMedia(filePath, mimeType, phoneNumberId = null) {
+    return this.post('/whatsapp/media/upload', {
+      file_path: filePath,
+      mime_type: mimeType,
+      phone_number_id: phoneNumberId
+    });
+  }
+
+  async getMediaUrl(mediaId, phoneNumberId = null) {
+    return this.get(`/whatsapp/media/${mediaId}/url`, {
+      phone_number_id: phoneNumberId
+    });
+  }
+
+  async deleteMedia(mediaId, phoneNumberId = null) {
+    return this.delete(`/whatsapp/media/${mediaId}`, {
+      phone_number_id: phoneNumberId
+    });
+  }
 }
 
 export const apiService = new ApiService();

@@ -68,6 +68,42 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'whatsapp_calls.php' ? 'active' : '' ?>" href="whatsapp_calls.php">
+                        <i class="fas fa-phone"></i>
+                        <span class="nav-label">Calls</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'whatsapp_analytics.php' ? 'active' : '' ?>" href="whatsapp_analytics.php">
+                        <i class="fas fa-chart-line"></i>
+                        <span class="nav-label">Analytics</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'whatsapp_media.php' ? 'active' : '' ?>" href="whatsapp_media.php">
+                        <i class="fas fa-images"></i>
+                        <span class="nav-label">Media</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'whatsapp_payments.php' ? 'active' : '' ?>" href="whatsapp_payments.php">
+                        <i class="fas fa-credit-card"></i>
+                        <span class="nav-label">Payments</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'whatsapp_welcome_sequences.php' ? 'active' : '' ?>" href="whatsapp_welcome_sequences.php">
+                        <i class="fas fa-hand-wave"></i>
+                        <span class="nav-label">Welcome Sequences</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'whatsapp_throughput.php' ? 'active' : '' ?>" href="whatsapp_throughput.php">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span class="nav-label">Throughput</span>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'campaigns.php' ? 'active' : '' ?>" href="campaigns.php">
                         <i class="fas fa-bullhorn"></i>
                         <span class="nav-label">Campaigns</span>

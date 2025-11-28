@@ -46,24 +46,41 @@ function whatsappSendListMessage($to, $header, $body, $footer, $options, $phoneN
     return whatsappSendInteractive($to, 'list', $payload, $phoneNumberIdOverride);
 }
 
-function whatsappSendButtonMessage($to, $body, $buttons, $phoneNumberIdOverride = null) {
+function whatsappSendButtonMessage($to, $body, $buttons, $phoneNumberIdOverride = null, $header = null, $footer = null) {
     if (count($buttons) > 3) $buttons = array_slice($buttons, 0, 3);
     
-    $buttonPayload = array_map(function($btn, $idx) {
+    $buttonPayload = array_map(function($btn) {
+        $buttonId = $btn['id'] ?? (string)uniqid('btn_', true);
+        $buttonTitle = substr($btn['title'] ?? 'Button', 0, 20);
+        
         return [
             'type' => 'reply',
             'reply' => [
-                'id' => (string)$idx,
-                'title' => substr($btn['title'], 0, 20)
+                'id' => $buttonId,
+                'title' => $buttonTitle
             ]
         ];
-    }, $buttons, array_keys($buttons));
+    }, $buttons);
     
     $payload = [
         'type' => 'button',
-        'body' => ['text' => $body],
+        'body' => ['text' => substr($body, 0, 1024)],
         'action' => ['buttons' => $buttonPayload]
     ];
+    
+    // Add header if provided
+    if ($header) {
+        if (is_string($header)) {
+            $payload['header'] = ['type' => 'text', 'text' => substr($header, 0, 60)];
+        } elseif (is_array($header)) {
+            $payload['header'] = $header;
+        }
+    }
+    
+    // Add footer if provided
+    if ($footer) {
+        $payload['footer'] = ['text' => substr($footer, 0, 60)];
+    }
     
     return whatsappSendInteractive($to, 'button', $payload, $phoneNumberIdOverride);
 }

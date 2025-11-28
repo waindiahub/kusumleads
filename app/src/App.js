@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { Box } from "@mui/material";
 import LoginScreen from "./screens/LoginScreen";
 import DashboardScreen from "./screens/DashboardScreen";
@@ -9,6 +9,7 @@ import ProfileScreen from "./screens/ProfileScreen";
 import LeaderboardScreen from "./screens/LeaderboardScreen";
 import ChatListScreen from "./screens/ChatListScreen";
 import ChatDetailScreen from "./screens/ChatDetailScreen";
+import CallScreen from "./screens/CallScreen";
 import BottomNav from "./components/BottomNavigation";
 import SplashScreen from "./components/SplashScreen";
 import { pusherService } from "./services/PusherService";
@@ -20,6 +21,7 @@ import "./App.css";
 
 function AppRoutes() {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
 
   /**
    * REGISTER DEVICE AFTER LOGIN (ANDROID OPTIMIZED)
@@ -56,6 +58,24 @@ function AppRoutes() {
       if (ok) {
         pusherService.onMessage((data) => {
           console.log('Realtime WhatsApp event', data)
+          // Handle call updates - navigate to call screen for incoming calls
+          if (data.type === 'call_update' && data.direction === 'USER_INITIATED' && data.status === 'RINGING') {
+            const callId = data.call_id || data.id
+            if (callId) {
+              navigate(`/calls/${callId}`)
+            }
+          }
+        })
+        
+        // Also listen for call updates separately
+        pusherService.onCallUpdate((data) => {
+          console.log('Call update received:', data)
+          if (data.direction === 'USER_INITIATED' && data.status === 'RINGING') {
+            const callId = data.call_id || data.id
+            if (callId) {
+              navigate(`/calls/${callId}`)
+            }
+          }
         })
       }
     })()
@@ -84,6 +104,7 @@ function AppRoutes() {
             <Route path="/leads/:id" element={<LeadDetailScreen />} />
             <Route path="/chats" element={<ChatListScreen />} />
             <Route path="/chats/:id" element={<ChatDetailScreen />} />
+            <Route path="/calls/:callId" element={<CallScreen />} />
             <Route path="/leaderboard" element={<LeaderboardScreen />} />
             <Route path="/profile" element={<ProfileScreen />} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />

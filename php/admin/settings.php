@@ -92,7 +92,11 @@ $defaultSettings = [
     'r2_endpoint' => '',
     'r2_region' => 'auto',
     'r2_custom_domain' => '',
-    'cache_last_cleared' => ''
+    'cache_last_cleared' => '',
+    'whatsapp_waba_id' => '',
+    'cashfree_client_id' => '',
+    'cashfree_client_secret' => '',
+    'cashfree_sandbox' => '1'
 ];
 
 foreach ($defaultSettings as $key => $default) {
@@ -306,8 +310,35 @@ $lastCacheClearHuman = $lastCacheClear ? date('M j, Y g:i A', strtotime($lastCac
                                     <input type="text" name="settings[whatsapp_phone_number_id]" class="form-control" value="<?= htmlspecialchars($settings['whatsapp_phone_number_id']) ?>">
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Business Account ID</label>
-                                    <input type="text" name="settings[whatsapp_business_account_id]" class="form-control" value="<?= htmlspecialchars($settings['whatsapp_business_account_id'] ?? '') ?>">
+                                    <label class="form-label">Business Account ID (WABA ID)</label>
+                                    <input type="text" name="settings[whatsapp_waba_id]" class="form-control" value="<?= htmlspecialchars($settings['whatsapp_waba_id'] ?? '') ?>" placeholder="Required for Analytics">
+                                    <small class="text-muted">WhatsApp Business Account ID for analytics and welcome sequences</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cashfree Payment Gateway -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5><i class="fas fa-credit-card"></i> Cashfree Payment Gateway</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Client ID</label>
+                                    <input type="text" name="settings[cashfree_client_id]" class="form-control" value="<?= htmlspecialchars($settings['cashfree_client_id'] ?? '') ?>">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Client Secret</label>
+                                    <input type="password" name="settings[cashfree_client_secret]" class="form-control" value="<?= htmlspecialchars($settings['cashfree_client_secret'] ?? '') ?>">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Sandbox Mode</label>
+                                    <select name="settings[cashfree_sandbox]" class="form-select">
+                                        <option value="1" <?= ($settings['cashfree_sandbox'] ?? '1') == '1' ? 'selected' : '' ?>>Enabled (Sandbox)</option>
+                                        <option value="0" <?= ($settings['cashfree_sandbox'] ?? '1') == '0' ? 'selected' : '' ?>>Disabled (Production)</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
