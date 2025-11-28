@@ -331,4 +331,21 @@ function handleFlowRoutes($method, $path) {
     }
 }
 
+function markMessageAsRead($conversationId, $messageId) {
+    $token = validateJWT();
+    if (!$token) sendResponse(false, 'Authentication required');
+    require_once 'whatsapp_advanced.php';
+    $db = getDB();
+    if ($token['role'] !== 'admin') {
+        $stmt = $db->prepare('SELECT assigned_agent_id FROM whatsapp_conversations WHERE id = ?');
+        $stmt->execute([$conversationId]);
+        $row = $stmt->fetch();
+        if (!$row || (int)$row['assigned_agent_id'] !== (int)$token['user_id']) {
+            sendResponse(false, 'Access denied');
+        }
+    }
+    whatsappMarkMessageAsRead($db, $messageId, $conversationId);
+    sendResponse(true, 'Message marked as read');
+}
+
 ?>
