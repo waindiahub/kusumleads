@@ -1,0 +1,43 @@
+modules = ["php-8.2", "nodejs-20", "web", "java-graalvm22.3", "php-8.3"]
+[agent]
+expertMode = true
+
+[nix]
+channel = "stable-25_05"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "React Frontend"
+
+[[workflows.workflow]]
+name = "React Frontend"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd app && npm start"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[[ports]]
+localPort = 43285
+externalPort = 3000
+
+[deployment]
+deploymentTarget = "static"
+build = ["bash", "-c", "cd app && npm install && npm run build"]
+publicDir = "app/build"
