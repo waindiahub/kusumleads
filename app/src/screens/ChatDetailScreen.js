@@ -27,6 +27,7 @@ import {
 } from '@mui/material'
 import { apiService } from '../services/ApiService'
 import WhatsAppTemplateSelector from '../components/WhatsAppTemplateSelector'
+import EnhancedMessageBubble from '../components/EnhancedMessageBubble'
 
 const quickReplies = [
   'Attendance IN',
@@ -48,66 +49,6 @@ const formatDate = (value) => {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
   return date.toLocaleString()
-}
-
-const MessageBubble = ({ message }) => {
-  const isOutgoing = message.direction === 'outgoing'
-  const mediaUrl = message.media_url
-  const type = (message.type || '').toLowerCase()
-  return (
-    <Box
-      sx={{
-        display: 'flex',
-        justifyContent: isOutgoing ? 'flex-end' : 'flex-start',
-        mb: 1.5,
-        pl: isOutgoing ? 6 : 0,
-        pr: isOutgoing ? 0 : 6
-      }}
-    >
-      <Paper
-        elevation={0}
-        sx={{
-          maxWidth: '85%',
-          p: 1.5,
-          bgcolor: isOutgoing ? '#d1f4cc' : '#ffffff',
-          borderRadius: 3,
-          borderTopRightRadius: isOutgoing ? 0 : 20,
-          borderTopLeftRadius: isOutgoing ? 20 : 0,
-          boxShadow: '0 4px 15px rgba(0,0,0,0.05)'
-        }}
-      >
-        {mediaUrl && type === 'image' && (
-          <Box sx={{ mb: 0.5 }}>
-            <img src={mediaUrl} alt="Attachment" style={{ maxWidth: '100%', borderRadius: 8 }} />
-          </Box>
-        )}
-        {mediaUrl && type === 'video' && (
-          <Box sx={{ mb: 0.5 }}>
-            <video controls src={mediaUrl} style={{ maxWidth: '100%', borderRadius: 8 }} />
-          </Box>
-        )}
-        {mediaUrl && type === 'audio' && (
-          <Box sx={{ mb: 0.5 }}>
-            <audio controls src={mediaUrl} />
-          </Box>
-        )}
-        {mediaUrl && !['image','video','audio','sticker'].includes(type) && (
-          <Box sx={{ mb: 0.5, display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
-            <PictureAsPdf fontSize="small" />
-            <a href={mediaUrl} target="_blank" rel="noreferrer">Download attachment</a>
-          </Box>
-        )}
-        {(message.body || message.type) && (
-          <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-            {message.body || message.type}
-          </Typography>
-        )}
-        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block', textAlign: 'right' }}>
-          {formatDate(message.created_at || message.timestamp)}
-        </Typography>
-      </Paper>
-    </Box>
-  )
 }
 
 const ContactProfileDrawer = ({ open, onClose, contact }) => {
@@ -264,6 +205,12 @@ export default function ChatDetailScreen() {
       const res = await apiService.getWhatsAppMessages(id)
       if (res.success && Array.isArray(res.data)) {
         setMessages(res.data)
+        // Mark incoming messages as read
+        res.data.forEach((msg) => {
+          if (msg.direction === 'incoming' && msg.status !== 'read') {
+            apiService.markMessageAsRead(id, msg.id).catch(() => {})
+          }
+        })
       } else {
         setMessages([])
       }
@@ -443,7 +390,13 @@ export default function ChatDetailScreen() {
           User intervened by you • Last active {formatDate(conversationMeta.lastActive)}
         </Typography>
         {messages.map((message) => (
-          <MessageBubble key={message.id} message={message} />
+          <EnhancedMessageBubble
+            key={message.id}
+            message={message}
+            isOutgoing={message.direction === 'outgoing'}
+            onReply={() => {}}
+            onDelete={() => {}}
+          />
         ))}
       </Box>
 
