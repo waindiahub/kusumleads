@@ -50,6 +50,8 @@ if ($method === 'GET' && strpos($path, '/whatsapp/webhook') !== false) {
     } else {
         getConversations();
     }
+} elseif ($method === 'POST' && preg_match('/\/whatsapp\/conversations\/(\d+)\/messages\/(\w+)\/read$/', $path, $m)) {
+    markMessageAsRead((int)$m[1], $m[2]);
 } elseif ($method === 'POST' && strpos($path, '/whatsapp/followups/process') !== false) {
     $token = validateJWT();
     if (!$token || $token['role'] !== 'admin') sendResponse(false, 'Admin required');
